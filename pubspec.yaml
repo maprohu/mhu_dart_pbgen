@@ -1,5 +1,5 @@
 name: mhu_dart_pbgen
-version: 1.0.0
+version: 1.0.1
 description: Generates extra classes from protoc output.
 repository: https://github.com/maprohu/mhu_dart_pbgen
 
