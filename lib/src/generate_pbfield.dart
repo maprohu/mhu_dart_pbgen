@@ -143,6 +143,9 @@ String generatePbFieldDart({
           '$valueType? get ${fld.name}Opt',
           ' => ',
           '${msg.className}\$.${fld.name}.getOpt(this);',
+          'set ${fld.name}Opt($valueType? value)',
+          ' => ',
+          '${msg.className}\$.${fld.name}.setOpt(this, value);',
         ]
       ],
       '}',
