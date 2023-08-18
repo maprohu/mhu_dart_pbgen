@@ -100,6 +100,7 @@ String generatePbFieldDart({
     // Message static classes
     for (final msg in lib.messages) ...[
       'class ${msg.className}\$ {', // Start of static class
+      '${msg.className}\$._();',
       // Field accessors
       for (final fld in msg.fields) ...[
         'static final ${fld.name} = ${fldgen(msg, fld)};'
