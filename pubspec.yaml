@@ -6,13 +6,15 @@ repository: https://github.com/maprohu/mhu_dart_pbgen
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
-#dependency_overrides:
-#  mhu_dart_commons:
-#    path: ../mhu_dart_commons
-#  mhu_dart_proto:
-#    path: ../mhu_dart_proto
-#  mhu_dart_sourcegen:
-#    path: ../mhu_dart_sourcegen
+dependency_overrides:
+  mhu_dart_commons:
+    path: ../mhu_dart_commons
+  mhu_dart_proto:
+    path: ../mhu_dart_proto
+  mhu_dart_sourcegen:
+    path: ../mhu_dart_sourcegen
+  mhu_dart_annotation:
+    path: ../mhu_dart_annotation
 
 dependencies:
   mhu_dart_commons: ^1.0.9
