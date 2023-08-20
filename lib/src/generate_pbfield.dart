@@ -10,7 +10,6 @@ import 'package:mhu_dart_sourcegen/mhu_dart_sourcegen.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:recase/recase.dart';
 
-
 Future<void> runPbFieldGenerator({
   String? packageName,
   required PbiLib lib,
@@ -92,6 +91,7 @@ String generatePbFieldDart({
     "// ignore_for_file: camel_case_types",
     "// ignore_for_file: unnecessary_this",
     "// ignore_for_file: camel_case_extensions",
+    "import 'package:fixnum/fixnum.dart';",
     "import 'package:mhu_dart_proto/mhu_dart_proto.dart' as $_mdp;",
     "import 'package:mhu_dart_commons/commons.dart' as $_mdc;",
     for (final dep in lib.importedLibraries)
