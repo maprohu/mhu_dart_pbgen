@@ -12,6 +12,8 @@ dependency_overrides:
     path: ../../../mhu_dart_commons
   mhu_dart_proto:
     path: ../../../mhu_dart_proto
+  mhu_dart_annotation:
+    path: ../../../mhu_dart_annotation
 
 dependencies:
   protobuf: ^3.0.0

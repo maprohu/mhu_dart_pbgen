@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -6,7 +7,6 @@ import 'package:mhu_dart_pbgen/src/protoc.dart';
 import 'package:mhu_dart_proto/mhu_dart_proto.dart';
 import 'package:mhu_dart_sourcegen/mhu_dart_sourcegen.dart';
 import 'package:recase/recase.dart';
-
 
 Future<void> runPbLibGenerator({
   String? packageName,
@@ -27,9 +27,10 @@ Future<void> runPbLibGenerator({
 
   final metaFile = cwd.pblibFile(packageName);
 
-  final fileDescriptorSet = await cwd.descriptorSetOut
-      .readAsBytes()
-      .then(FileDescriptorSet.fromBuffer);
+  final fileDescriptorSetBytes = await cwd.descriptorSetOut.readAsBytes();
+
+  final fileDescriptorSet =
+      FileDescriptorSet.fromBuffer(fileDescriptorSetBytes);
 
   final content = generatePbLibDart(
     package: packageName,
@@ -141,6 +142,7 @@ String generatePbLibDart({
     "  ], importedLibraries: [",
     for (final dep in importedPackages) pblibVarName(dep).plusComma,
     "  ],",
+    "  fileDescriptorSetBase64: r'${base64.encode(fileDescriptorSet.writeToBuffer())}',",
     ");",
   ].joinLines;
 }
