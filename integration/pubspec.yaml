@@ -1,4 +1,4 @@
-name: model_a
+name: model_dart_pbgen_integration
 version: 1.0.0
 
 environment:
@@ -7,19 +7,24 @@ environment:
 
 dependency_overrides:
   mhu_dart_sourcegen:
-    path: ../../../mhu_dart_sourcegen
+    path: ../../mhu_dart_sourcegen
   mhu_dart_commons:
-    path: ../../../mhu_dart_commons
+    path: ../../mhu_dart_commons
+  mhu_dart_pbschema:
+    path: ../../mhu_dart_pbschema
+  mhu_dart_protoc:
+    path: ../../mhu_dart_protoc
   mhu_dart_proto:
-    path: ../../../mhu_dart_proto
+    path: ../../mhu_dart_proto
   mhu_dart_annotation:
-    path: ../../../mhu_dart_annotation
+    path: ../../mhu_dart_annotation
 
 dependencies:
   protobuf: ^3.0.0
   fixnum: ^1.1.0
   collection: ^1.17.2
   mhu_dart_proto: ^1.0.1
+  mhu_dart_pbschema: ^1.0.1
   mhu_dart_commons: ^1.0.7
 
 
@@ -27,5 +32,5 @@ dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.0
   mhu_dart_pbgen:
-    path: ../..
+    path: ..
 

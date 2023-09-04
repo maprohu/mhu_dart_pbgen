@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:mhu_dart_commons/io.dart';
-import 'package:mhu_dart_pbgen/src/protoc.dart';
 import 'package:mhu_dart_proto/mhu_dart_proto.dart';
+import 'package:mhu_dart_protoc/mhu_dart_protoc.dart';
 import 'package:mhu_dart_sourcegen/mhu_dart_sourcegen.dart';
 import 'package:recase/recase.dart';
 

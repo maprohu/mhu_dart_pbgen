@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+
+message MsgA {
+  MsgB fld_message = 1;
+  double fld_double = 2;
+  float fld_float = 3;
+  int32 fld_int32 = 4;
+  repeated int32 rep_int32 = 5;
+  repeated MsgB rep_msgb = 6;
+
+  E0 fld_enum_e0 = 7;
+  repeated E0 rep_enum_e0 = 8;
+
+  map<string, string> map_string_string = 9;
+  map<int32, string> map_int32_string = 10;
+  map<string, MsgB> map_string_msg_b = 11;
+  map<int32, E0> map_string_e0 = 12;
+
+  oneof oo_sample {
+    E0 opt_e0 = 16;
+    MsgB opt_msg_b = 15;
+    string opt_string = 14;
+    int32 opt_int32 = 13;
+  }
+
+  oneof oo_sample2 {
+    E0 opt_e1 = 17;
+    float opt_float = 19;
+    double opt_double = 18;
+  }
+
+  bytes fld_bytes = 20;
+}
+
+message MsgB {
+  message X {
+
+    enum E0 {
+      E0D = 0;
+    }
+  }
+
+  enum E0 {
+    E0D = 0;
+  }
+}
+
+enum E0 {
+  E0D = 0;
+}
+
+
+message OrderTest {
+  int32 t2 = 2;
+  int32 t8 = 8;
+  int32 t1 = 1;
+  int32 t3 = 3;
+}
+message TstFieldTypesMsg {
+  double double_value = 1;
+  float float_value = 2;
+  int32 int32_value = 3;
+  int64 int64_value = 4;
+  uint32 uint32_value = 5;
+  uint64 uint64_value = 6;
+  sint32 sint32_value = 7;
+  sint64 sint64_value = 8;
+  fixed32 fixed32_value = 9;
+  fixed64 fixed64_value = 10;
+  sfixed32 sfixed32_value = 11;
+  sfixed64 sfixed64_value = 12;
+  bool bool_value = 13;
+  string string_value = 14;
+  bytes bytes_value = 15;
+
+  TstEnumEnm enum_value = 16;
+  TstMessageMsg message_value = 17;
+
+  repeated int32 repeated_int32_value = 18;
+  repeated int64 repeated_int64_value = 19;
+  repeated string repeated_string_value = 20;
+  repeated bool repeated_bool_value = 21;
+  repeated bytes repeated_bytes_value = 22;
+  repeated double repeated_double_value = 23;
+  repeated TstMessageMsg repeated_message_value = 24;
+  repeated TstEnumEnm repeated_enum_value = 25;
+  map<string, TstMessageMsg> map_value = 26;
+  map<string, TstEnumEnm> map_enum_value = 27;
+  map<int32, int32> map_int32_value = 28;
+
+  oneof oneof_1 {
+    int32 option_1_1 = 201;
+    int32 option_1_2 = 202;
+  }
+  oneof oneof_2 {
+    int32 option_2_1 = 102;
+    int32 option_2_2 = 101;
+  }
+}
+
+enum TstEnumEnm {
+  UNSPECIFIED = 0;
+  TEST_VALUE = 1;
+}
+
+message TstMessageMsg {
+  message NestedMsg {}
+  enum NestedEnm {
+    UNSPECIFIED = 0;
+  }
+}

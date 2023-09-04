@@ -9,17 +9,26 @@ environment:
 dependency_overrides:
   mhu_dart_commons:
     path: ../mhu_dart_commons
-  mhu_dart_proto:
-    path: ../mhu_dart_proto
+  mhu_dart_protoc:
+    path: ../mhu_dart_protoc
+  mhu_dart_pbschema:
+    path: ../mhu_dart_pbschema
+#  mhu_dart_proto:
+#    path: ../mhu_dart_proto
   mhu_dart_sourcegen:
     path: ../mhu_dart_sourcegen
   mhu_dart_annotation:
     path: ../mhu_dart_annotation
+  mhu_dart_builder:
+    path: ../mhu_dart_builder
 
 dependencies:
   mhu_dart_commons: ^1.0.9
-  mhu_dart_proto: ^1.0.3
+  mhu_dart_annotation: ^1.0.1
+  mhu_dart_protoc: ^1.0.1
+#  mhu_dart_proto: ^1.0.3
   mhu_dart_sourcegen: ^1.0.1
+  mhu_dart_pbschema: ^1.0.1
 
   recase: ^4.1.0
   fast_immutable_collections: ^9.1.5
@@ -29,3 +38,5 @@ dependencies:
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.0
+  build_runner: ^2.4.6
+  mhu_dart_builder: ^1.0.3
