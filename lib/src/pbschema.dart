@@ -56,7 +56,9 @@ Future<void> runPbSchemaGenerator({
     dependencies: dependencies,
   );
 
-  final schemaCtx = await schemaCollection.schemaCollectionBuildCtx();
+  final schemaCtx = await schemaCollection.schemaCollectionBuildCtx(
+    lookupMessageMarkerByName: (messageClassName) => throw messageClassName,
+  );
 
   final content = generatePbschemaDart(
     packageName: packageName,
@@ -112,6 +114,8 @@ Strings generatePbschemaDart({
   const commonsPrefix = "\$commons";
   const commonsRef = "$commonsPrefix.";
   const messageMarkerVar = "messageMarker\$";
+  const fieldMarkersVar = "fieldMarkers\$";
+  const oneofMarkersVar = "oneofMarkers\$";
 
   Strings protoImport(String package) sync* {
     yield "import";
@@ -136,6 +140,7 @@ Strings generatePbschemaDart({
     packageName: packageName,
     pbschemaDependencies: dependencies,
     fileDescriptorSetBase64: fileDescriptorSetBase64,
+    messageMarkers: [],
   );
 
   yield "final";
@@ -157,6 +162,17 @@ Strings generatePbschemaDart({
     yield ",";
     yield "fileDescriptorSetBase64:";
     yield fileDescriptorSetBase64.dartRawSingleQuoteStringLiteral;
+    yield ",";
+
+    yield "messageMarkers:";
+    yield* run(() sync* {
+      for (final messageCtx in messages) {
+        yield messageCtx.messageCtxMarkersClassName();
+        yield '.';
+        yield messageMarkerVar;
+        yield ',';
+      }
+    }).enclosedInSquareBracket;
     yield ",";
   }).enclosedInParen;
   yield ";";
@@ -214,14 +230,27 @@ Strings generatePbschemaDart({
       yield "._();";
 
       yield "static final";
+      yield pbschemaRef;
+      yield nm(MessageMarker);
+      yield* [
+        messageTypeName,
+      ].enclosedInChevron;
       yield messageMarkerVar;
       yield "=";
       yield pbschemaRef;
       yield "messageMarker";
       yield* run(() sync* {
-        yield "defaultMessage:";
+
+        yield "msgClassActions:";
         yield messageTypeName;
-        yield ".getDefault(),";
+        yield ".getDefault().staticMsgClassActions(),";
+
+        yield "callFieldMarkers: () =>";
+        yield fieldMarkersVar;
+        yield ',';
+        yield "callOneofMarkers: () =>";
+        yield oneofMarkersVar;
+        yield ',';
       }).enclosedInParen;
       yield ';';
 
@@ -291,108 +320,157 @@ Strings generatePbschemaDart({
         yield ';';
       }).enclosedInCurly;
 
-      for (final logicalField in messageCtx.callLogicalFieldsList()) {
+      yield "static final";
+      yield fieldMarkersVar;
+      yield "=";
+      yield* [
+        pbschemaRef,
+        nm(FieldMarker),
+        ...[
+          messageTypeName,
+          "dynamic",
+        ].separatedByCommas.enclosedInChevron,
+      ].enclosedInChevron;
+      yield* run(() sync* {
+        for (final field in messageCtx.messageFieldCtxIterable()) {
+          yield field.fieldMsg.fieldInfo.description.jsonName;
+          yield ',';
+        }
+      }).enclosedInSquareBracket;
+      yield ';';
+
+      yield "static final";
+      yield oneofMarkersVar;
+      yield "=";
+      yield* [
+        pbschemaRef,
+        nm(OneofMarker),
+        ...[messageTypeName].enclosedInChevron,
+      ].enclosedInChevron;
+      yield* run(() sync* {
+        for (final field in messageCtx.messageOneofCtxIterable()) {
+          yield field.oneofMsg.description.jsonName;
+          yield ',';
+        }
+      }).enclosedInSquareBracket;
+      yield ';';
+
+      for (final fieldCtx in messageCtx.messageFieldCtxIterable()) {
+        final fieldProtoName =
+            fieldCtx.fieldMsg.fieldInfo.description.protoName;
+        final fieldJsonName = fieldCtx.fieldMsg.fieldInfo.description.jsonName;
         yield "static final";
-        yield logicalField.fieldProtoName.camelCase;
+        yield fieldJsonName;
         yield "=";
 
-        switch (logicalField) {
-          case OneofCtx():
-            yield pbschemaRef;
-            yield nm(ComposedOneofMarker);
-            yield* [
-              messageTypeName,
-            ].enclosedInChevron;
-            yield* run(() sync* {
-              yield 'oneofIndex:';
-              yield logicalField.oneofMsg.oneofIndex.toString();
-              yield ',';
-            }).enclosedInParen;
+        final typeActions = fieldCtx.typeActions;
+        final fieldName = fieldCtx.fieldCtxJsonName();
 
-          case FieldCtx():
-            final typeActions = logicalField.typeActions;
-            final fieldName = logicalField.fieldCtxJsonName();
-
-            Strings field<M extends FieldMarker>({
-              required Iterable<String> typeArgs,
-              required Strings markerParams,
-            }) sync* {
-              yield pbschemaRef;
-              yield nm(M);
-              yield* [
-                messageTypeName,
-                ...typeArgs,
-              ].separatedByCommas.enclosedInChevron;
-              yield* run(() sync* {
-                yield 'tagNumberValue:';
-                yield logicalField.fieldCtxTagNumber().toString();
-                yield ',';
-                yield* markerParams;
-              }).enclosedInParen;
-            }
-
-            Strings singleMarkerParams() sync* {
-              yield "readAttribute: (msg) => msg.";
-              yield "${fieldName}Opt";
-              yield ',';
-              yield "writeAttribute: (msg, value) => msg.";
-              yield "${fieldName}Opt";
-              yield "= value";
-              yield ',';
-            }
-
-            Strings valueMessageMarker({
-              required MessageTypeActions messageTypeActions,
-            }) sync* {
-              yield "valueMessageMarker:";
-              yield messageTypeActions.messageCtx.messageCtxMarkersClassName();
-              yield ".";
-              yield messageMarkerVar;
-              yield ",";
-            }
-
-            switch (typeActions) {
-              case ScalarTypeActions():
-                yield* field<ComposedScalarFieldMarker>(
-                  typeArgs: [
-                    typeActions.singleTypeName(),
-                  ],
-                  markerParams: singleMarkerParams(),
-                );
-              case MessageTypeActions():
-                yield* field<ComposedMessageFieldMarker>(
-                  typeArgs: [
-                    typeActions.singleTypeName(),
-                  ],
-                  markerParams: [
-                    ...singleMarkerParams(),
-                    ...valueMessageMarker(messageTypeActions: typeActions),
-                  ],
-                );
-              case EnumTypeActions():
-                yield* field<ComposedEnumFieldMarker>(
-                  typeArgs: [
-                    typeActions.singleTypeName(),
-                  ],
-                  markerParams: singleMarkerParams(),
-                );
-              case RepeatedTypeActions():
-                yield* field<ComposedRepeatedFieldMarker>(
-                  typeArgs: [
-                    typeActions.collectionElementTypeActions.singleTypeName(),
-                  ],
-                  markerParams: [],
-                );
-              case MapTypeActions():
-                yield* field<ComposedMapFieldMarker>(
-                  typeArgs: [
-                    typeActions.mapKeyTypeActions.scalarTypeName(),
-                    typeActions.collectionElementTypeActions.singleTypeName(),
-                  ],
-                  markerParams: [],
-                );
-            }
+        Strings field<M extends FieldMarker>({
+          required Iterable<String> typeArgs,
+          required Strings markerParams,
+        }) sync* {
+          yield pbschemaRef;
+          yield nm(M);
+          yield* [
+            messageTypeName,
+            ...typeArgs,
+          ].separatedByCommas.enclosedInChevron;
+          yield* run(() sync* {
+            yield "fieldProtoName:";
+            yield fieldProtoName.dartRawSingleQuoteStringLiteral;
+            yield ',';
+            yield 'tagNumberValue:';
+            yield fieldCtx.fieldCtxTagNumber().toString();
+            yield ',';
+            yield* markerParams;
+          }).enclosedInParen;
         }
+
+        Strings singleMarkerParams() sync* {
+          yield "readAttribute: (msg) => msg.";
+          yield "${fieldName}Opt";
+          yield ',';
+          yield "writeAttribute: (msg, value) => msg.";
+          yield "${fieldName}Opt";
+          yield "= value";
+          yield ',';
+        }
+
+        Strings valueMessageMarker({
+          required MessageTypeActions messageTypeActions,
+        }) sync* {
+          yield "valueMessageMarker:";
+          yield messageTypeActions.messageCtx.messageCtxMarkersClassName();
+          yield ".";
+          yield messageMarkerVar;
+          yield ",";
+        }
+
+        switch (typeActions) {
+          case ScalarTypeActions():
+            yield* field<ComposedScalarFieldMarker>(
+              typeArgs: [
+                typeActions.singleTypeName(),
+              ],
+              markerParams: singleMarkerParams(),
+            );
+          case MessageTypeActions():
+            yield* field<ComposedMessageFieldMarker>(
+              typeArgs: [
+                typeActions.singleTypeName(),
+              ],
+              markerParams: [
+                ...singleMarkerParams(),
+                ...valueMessageMarker(messageTypeActions: typeActions),
+              ],
+            );
+          case EnumTypeActions():
+            yield* field<ComposedEnumFieldMarker>(
+              typeArgs: [
+                typeActions.singleTypeName(),
+              ],
+              markerParams: singleMarkerParams(),
+            );
+          case RepeatedTypeActions():
+            yield* field<ComposedRepeatedFieldMarker>(
+              typeArgs: [
+                typeActions.collectionElementTypeActions.singleTypeName(),
+              ],
+              markerParams: [],
+            );
+          case MapTypeActions():
+            yield* field<ComposedMapFieldMarker>(
+              typeArgs: [
+                typeActions.mapKeyTypeActions.scalarTypeName(),
+                typeActions.collectionElementTypeActions.singleTypeName(),
+              ],
+              markerParams: [],
+            );
+        }
+        yield ";";
+      }
+
+      for (final logicalField in messageCtx.messageOneofCtxIterable()) {
+        final fieldProtoName = logicalField.oneofMsg.description.protoName;
+        final fieldJsonName = logicalField.oneofMsg.description.jsonName;
+        yield "static final";
+        yield fieldJsonName;
+        yield "=";
+
+        yield pbschemaRef;
+        yield nm(ComposedOneofMarker);
+        yield* [
+          messageTypeName,
+        ].enclosedInChevron;
+        yield* run(() sync* {
+          yield "fieldProtoName:";
+          yield fieldProtoName.dartRawSingleQuoteStringLiteral;
+          yield ',';
+          yield 'oneofIndex:';
+          yield logicalField.oneofMsg.oneofIndex.toString();
+          yield ',';
+        }).enclosedInParen;
 
         yield ";";
       }
@@ -415,6 +493,7 @@ Strings generatePbschemaDart({
                 yield "get";
                 yield fieldName;
                 yield "=>";
+                yield "// ignore: unnecessary_this";
                 yield "this.mapWatchProtoMessage";
                 yield* run(() sync* {
                   yield "readWriteAttribute:";
@@ -423,9 +502,8 @@ Strings generatePbschemaDart({
                   yield fieldName;
                   yield ",";
                   yield "defaultMessage:";
-                  yield typeActions.messageCtx.messageCtxMarkersClassName();
-                  yield ".";
-                  yield messageMarkerVar;
+                  yield typeActions.messageCtx.messageCtxTypeName();
+                  yield ".getDefault()";
                   yield ",";
                 }).enclosedInParen;
                 yield ";";
@@ -440,6 +518,7 @@ Strings generatePbschemaDart({
                 yield "get";
                 yield fieldName;
                 yield "=>";
+                yield "// ignore: unnecessary_this";
                 yield "this.mapWatchProtoWrite";
                 yield* run(() sync* {
                   yield "readWriteAttribute:";

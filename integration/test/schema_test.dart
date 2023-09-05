@@ -16,6 +16,7 @@ void main() {
     final schemaLookupByName =
         await fileDescriptorSet.descriptorSchemaLookupByName(
       dependencies: [],
+      lookupMessageMarkerByName: (messageClassName) => throw messageClassName,
     );
 
     final fieldTypesCtx =
