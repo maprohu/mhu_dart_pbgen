@@ -25,11 +25,13 @@ File packagePbschemaFile({
 Future<void> runPbSchemaGenerator({
   String? packageName,
   List<Pbschema> dependencies = const [],
-  Directory? cwd,
+  Directory? sourcePackageDirectory,
+  Directory? targetPackageDirectory,
   bool protoc = true,
 }) async {
-  cwd ??= Directory.current;
-  packageName ??= await packageNameFromPubspec(cwd);
+  sourcePackageDirectory ??= Directory.current;
+  targetPackageDirectory ??= Directory.current;
+  packageName ??= await packageNameFromPubspec(sourcePackageDirectory);
 
   final flatDependencies = dependencies
       .pbschemaFlattenHierarchy()
@@ -40,13 +42,14 @@ Future<void> runPbSchemaGenerator({
     await runProtoc(
       packageName: packageName,
       dependencies: flatDependencies,
-      cwd: cwd,
+      sourcePackageDirectory: sourcePackageDirectory,
+      targetPackageDirectory: targetPackageDirectory,
     );
   }
 
-  final metaFile = cwd.packagePbschemaFile(packageName: packageName);
+  final metaFile = targetPackageDirectory.packagePbschemaFile(packageName: packageName);
 
-  final fileDescriptorSetBytes = await cwd.descriptorSetOut.readAsBytes();
+  final fileDescriptorSetBytes = await sourcePackageDirectory.descriptorSetOut.readAsBytes();
 
   final fileDescriptorSet =
       FileDescriptorSet.fromBuffer(fileDescriptorSetBytes);
@@ -73,7 +76,7 @@ Future<void> runPbSchemaGenerator({
   await metaFile.parent.create(recursive: true);
   await metaFile.writeAsString(
     content.formattedDartCode(
-      cwd.fileTo(
+      targetPackageDirectory.fileTo(
         ['.dart_tool', 'mhu', metaFile.filename],
       ),
     ),
